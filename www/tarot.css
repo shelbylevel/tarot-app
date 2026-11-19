@@ -1,0 +1,132 @@
+/* Tarot Journal theme — ported from app-ui.R */
+
+:root {
+  --bg: #131416;
+  --surface: #1a1b1e;
+  --gold: #d8b282;
+  --gold-soft: #e6c396;
+  --border: rgba(216, 178, 130, 0.3);
+  --f7-font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  --f7-bars-bg-color: var(--bg);
+  --f7-bars-text-color: var(--gold-soft);
+  --f7-theme-color: var(--gold);
+  --f7-page-bg-color: var(--bg);
+  --f7-block-strong-bg-color: var(--surface);
+  --f7-list-bg-color: var(--surface);
+  --f7-card-bg-color: var(--surface);
+  --f7-text-color: #ece8e1;
+}
+
+.page-content {
+  background: var(--bg) !important;
+  color: #ece8e1;
+}
+
+.tarot-serif,
+.navbar .title {
+  font-family: 'Cinzel Decorative', Georgia, serif !important;
+  font-weight: 400 !important;
+  color: var(--gold-soft) !important;
+  letter-spacing: 0.03em;
+}
+
+.navbar {
+  border-bottom: 1px solid var(--border);
+}
+
+.card,
+.sheet-modal {
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 18px !important;
+  box-shadow: none !important;
+  color: #ece8e1 !important;
+}
+.sheet-modal { border-radius: 24px 24px 0 0 !important; }
+
+.card-header {
+  color: var(--gold-soft);
+  font-weight: 600;
+  border-bottom: 1px solid var(--border);
+}
+
+.tarot-chip {
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 12px;
+  white-space: nowrap;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--gold);
+}
+.tarot-chip.active {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: var(--bg);
+}
+
+/* Orientation badges */
+.badge-upright {
+  background-color: var(--gold);
+  color: var(--bg);
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.badge-reversed {
+  background-color: transparent;
+  border: 1px solid var(--gold);
+  color: var(--gold);
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Section headings */
+.section-title {
+  font-family: 'Cinzel Decorative', Georgia, serif;
+  color: var(--gold-soft);
+  font-weight: 400;
+  letter-spacing: 0.03em;
+  margin: 1.2rem 0 0.5rem;
+  font-size: 17px;
+}
+
+/* Notes callout in history */
+.notes-box {
+  background-color: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 8px 12px;
+  font-size: 13px;
+}
+
+.muted {
+  color: #9a9ba5;
+  font-size: 12px;
+}
+
+/* Card imagery */
+.tarot-card-img {
+  max-width: 220px;
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+}
+.tarot-card-img.is-reversed {
+  transform: rotate(180deg);
+}
+
+/* Primary buttons */
+.button.button-fill,
+.button.active {
+  background: var(--gold) !important;
+  color: var(--bg) !important;
+  border-radius: 10px !important;
+  font-weight: 600;
+}
