@@ -73,6 +73,7 @@ label.label,
 
 .sheet-modal {
   border-radius: 24px 24px 0 0 !important;
+  border-bottom: none !important;
 }
 
 .card-header {
@@ -100,9 +101,10 @@ label.label,
 /* Horizontally scrolling chip rows (suit filters) */
 .chip-row {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   padding: 4px 0 12px;
-  overflow-x: auto;
+  /* overflow-x: auto; */
   scrollbar-width: none;
 }
 
@@ -127,69 +129,54 @@ label.label,
   padding-bottom: 4px;
 }
 
-/* Floating card menu anchored under the active suit chip.
-   position: fixed (set via JS from the chip's bounding rect) so the menu
-   is not clipped by the horizontally scrolling .chip-row. */
-.tarot-dropdown-menu {
-  position: fixed;
-  min-width: 200px;
-  max-width: 260px;
-  max-height: 50vh;
+/* Card-picker bottom sheets (f7Sheet) opened by the suit chips */
+.sheet-handle {
+  width: 38px;
+  height: 4px;
+  border-radius: 99px;
+  background: rgba(216, 178, 130, 0.35);
+  margin: 0 auto 14px;
+}
+
+.sheet-card-list {
+  max-height: 48vh;
   overflow-y: auto;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 6px;
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.65);
-  z-index: 13000;
-  opacity: 0;
-  transform: translateY(-6px) scale(0.97);
-  pointer-events: none;
-  transition: opacity 0.18s ease, transform 0.18s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-bottom: 12px;
 }
 
-.tarot-dropdown-menu.open {
-  opacity: 1;
-  transform: translateY(0) scale(1);
-  pointer-events: auto;
-}
-
-.tarot-dropdown-item {
+.sheet-card-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 12px;
-  padding: 9px 12px;
-  border-radius: 10px;
-  font-size: 13px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border);
+  font-size: 14px;
+  text-decoration: none;
   color: #ece8e1;
   cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease;
+  transition: all 0.15s ease;
 }
 
-.tarot-dropdown-item:hover {
+.sheet-card-item:hover {
   background: rgba(216, 178, 130, 0.12);
 }
 
-.tarot-dropdown-item.selected {
-  background: rgba(216, 178, 130, 0.18);
+.sheet-card-item.is-selected {
+  background: rgba(216, 178, 130, 0.15);
+  border-color: var(--gold);
   color: var(--gold-soft);
   font-weight: 600;
 }
 
-.tarot-dropdown-item.disabled {
+.sheet-card-item.disabled {
   opacity: 0.5;
   cursor: default;
-}
-
-.tarot-dropdown-item .check-mark {
-  opacity: 0;
-  color: var(--gold);
-  font-size: 11px;
-}
-
-.tarot-dropdown-item.selected .check-mark {
-  opacity: 1;
 }
 
 /* Orientation badges */

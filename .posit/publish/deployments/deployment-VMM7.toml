@@ -10,12 +10,23 @@ id = "01a1f62d-8bf1-e3c2-976e-1c335e85d62f"
 dashboard_url = "https://connect.posit.cloud/shelbylevel/content/01a1f62d-8bf1-e3c2-976e-1c335e85d62f"
 direct_url = "https://01a1f62d-8bf1-e3c2-976e-1c335e85d62f.share.connect.posit.cloud"
 logs_url = "https://connect.posit.cloud/shelbylevel/content/01a1f62d-8bf1-e3c2-976e-1c335e85d62f/history"
-deployed_at = "2026-11-20T03:33:58.597Z"
-bundle_id = "01a1f704-88b0-7bc3-b0da-88fe70382684"
+deployed_at = "2026-11-20T03:52:01.802Z"
+bundle_id = "01a1f714-fbb3-c619-47d1-33af9ba9f7e7"
 files = [
     ".posit/publish/deployments/deployment-VMM7.toml",
     ".posit/publish/tarot-app-H9L5.toml",
     "app.R",
+    "data/robin-wood-guidebook.md",
+    "data/spreads.csv",
+    "data/wild-unknown-guidebook.md",
+    "www/icons/apple-touch-icon.png",
+    "www/icons/icon-192.png",
+    "www/icons/icon-512-maskable.png",
+    "www/icons/icon-512.png",
+    "www/manifest.webmanifest",
+    "www/offline.html",
+    "www/service-worker.js",
+    "www/tarot.css",
 ]
 
 [connect_cloud]
@@ -28,6 +39,8 @@ entrypoint = "app.R"
 title = "tarot-app"
 files = [
     "/app.R",
+    "/www",
+    "/data",
     "/.posit/publish/tarot-app-H9L5.toml",
     "/.posit/publish/deployments/deployment-VMM7.toml",
 ]
@@ -2810,9 +2823,4 @@ license = "GPL (>= 2)"
 repository = "CRAN"
 needs_compilation = "no"
 author = "David B. Dahl [aut], David Scott [aut, cre], Charles Roosen [aut], Arni Magnusson [aut], Jonathan Swinton [aut], Ajay Shah [ctb], Arne Henningsen [ctb], Benno Puetz [ctb], Bernhard Pfaff [ctb], Claudio Agostinelli [ctb], Claudius Loehnert [ctb], David Mitchell [ctb], David Whiting [ctb], Fernando da Rosa [ctb], Guido Gay [ctb], Guido Schulz [ctb], Ian Fellows [ctb], Jeff Laake [ctb], John Walker [ctb], Jun Yan [ctb], Liviu Andronic [ctb], Markus Loecher [ctb], Martin Gubri [ctb], Matthieu Stigler [ctb], Robert Castelo [ctb], Seth Falcon [ctb], Stefan Edwards [ctb], Sven Garbade [ctb], Uwe Ligges [ctb]"
-
-[deployment_error]
-code = "deployFailed"
-message = "Runtime error: Unable to start the app due to a runtime error. Please check the logs for more information."
-operation = "publish"
 

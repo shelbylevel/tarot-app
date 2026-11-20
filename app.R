@@ -257,31 +257,15 @@ ui <- f7Page(
     ),
     tags$meta(name = "apple-mobile-web-app-title", content = "Tarot"),
     tags$script(HTML(
-      "function selectTarotCard(el, inputId, val) {
-        var menu = el.closest('.tarot-dropdown-menu');
-        menu.querySelectorAll('.tarot-dropdown-item').forEach(function(item) {
-          item.classList.remove('selected');
-        });
-        el.classList.add('selected');
-        menu.classList.remove('open');
-        Shiny.setInputValue(inputId, val, {priority: 'event'});
-      }
-      document.addEventListener('click', function(e) {
-        document.querySelectorAll('.tarot-dropdown-menu.open').forEach(function(menu) {
-          if (!menu.contains(e.target) && !e.target.closest('.suit-chip')) {
-            menu.classList.remove('open');
-          }
-        });
-      });
-      $(document).on('click', '.suit-chip', function() {
+      "$(document).on('click', '.suit-chip', function() {
         var chip = $(this);
         chip.siblings('.suit-chip').removeClass('active');
         chip.addClass('active');
-        var menu = $('#' + chip.parent().data('target'));
-        var rect = chip[0].getBoundingClientRect();
-        menu.css({left: rect.left, top: rect.bottom + 8});
-        menu.addClass('open');
-        Shiny.setInputValue('suit_filter', chip.data('suit'), {priority: 'event'});
+        Shiny.setInputValue('suit_filter', {
+          suit: chip.data('suit'),
+          sheet: chip.parent().data('sheet'),
+          nonce: Math.random()
+        }, {priority: 'event'});
       });
       $(document).on('click', '.orient-chip', function() {
         var chip = $(this);
@@ -304,8 +288,9 @@ ui <- f7Page(
 
       # --- TAB 1: LOG A MANUAL READING ---
       f7Tab(
+        title = "New Reading",
         tabName = "NewReading",
-        icon = f7Icon("square_stack_3d_up"),
+        icon = f7Icon("wand_stars_inverse"),
 
         f7Block(
           strong = TRUE,
@@ -340,7 +325,7 @@ ui <- f7Page(
           ),
           div(
             class = "chip-row",
-            `data-target` = "pick_card_menu",
+            `data-sheet` = "pick_card_sheet",
             span(
               class = "tarot-chip suit-chip",
               `data-suit` = "Major Arcana",
@@ -371,11 +356,6 @@ ui <- f7Page(
               f7Icon("tree"),
               "Pentacles"
             )
-          ),
-          div(
-            id = "pick_card_menu",
-            class = "tarot-dropdown-menu",
-            uiOutput("pick_card_menu_items")
           ),
           uiOutput("pick_card_selected"),
           div(
@@ -417,9 +397,9 @@ ui <- f7Page(
 
       # --- TAB 2: SPREAD GALLERY ---
       f7Tab(
-        title = "Spreads",
+        title = "Spread Gallery",
         tabName = "Spreads",
-        icon = f7Icon("rectangle_grid_2x2"),
+        icon = f7Icon("rectangle_on_rectangle_angled"),
         f7Block(
           strong = TRUE,
           inset = TRUE,
@@ -435,9 +415,10 @@ ui <- f7Page(
 
       # --- TAB 3: PAST READINGS LOG ---
       f7Tab(
-        tabName = "History",
-        icon = f7Icon("clock"),
-        uiOutput("history_ui"),
+        title = "Log",
+        tabName = "Log",
+        icon = f7Icon("bookmark"),
+        uiOutput("log_ui"),
         br()
       ),
 
@@ -456,7 +437,7 @@ ui <- f7Page(
           ),
           div(
             class = "chip-row",
-            `data-target` = "lookup_card_menu",
+            `data-sheet` = "lookup_card_sheet",
             span(
               class = "tarot-chip suit-chip",
               `data-suit` = "Major Arcana",
@@ -488,11 +469,6 @@ ui <- f7Page(
               "Pentacles"
             )
           ),
-          div(
-            id = "lookup_card_menu",
-            class = "tarot-dropdown-menu",
-            uiOutput("lookup_card_menu_items")
-          )
         ),
         f7Block(
           strong = TRUE,
@@ -509,6 +485,20 @@ ui <- f7Page(
     swipeToClose = TRUE,
     backdrop = TRUE,
     uiOutput("spread_detail_ui")
+  ),
+
+  # Bottom sheet card pickers, one per tab that uses suit chips
+  f7Sheet(
+    id = "pick_card_sheet",
+    swipeToClose = TRUE,
+    backdrop = TRUE,
+    uiOutput("pick_card_sheet_ui")
+  ),
+  f7Sheet(
+    id = "lookup_card_sheet",
+    swipeToClose = TRUE,
+    backdrop = TRUE,
+    uiOutput("lookup_card_sheet_ui")
   )
 )
 
@@ -535,40 +525,71 @@ server <- function(input, output, session) {
     decks[[input$lookup_deck]]
   })
 
-  # Active suit filter, driven by the suit chips (none selected initially)
+  # Active suit filter, driven by the suit chips (none selected initially).
+  # Clicking a chip also opens the bottom sheet named by the chip row's
+  # data-sheet attribute.
   active_suit <- reactiveVal(NULL)
   observeEvent(input$suit_filter, {
-    active_suit(input$suit_filter)
+    active_suit(input$suit_filter$suit)
+    updateF7Sheet(id = input$suit_filter$sheet, session = session)
   })
 
-  # Render floating card menus in sync with the selected deck and suit chip
-  card_menu_items <- function(cards, inputId, selected) {
-    if (length(cards) == 0) {
-      return(div(class = "tarot-dropdown-item disabled", "No cards"))
+  # Scrollable card list inside a picker sheet, styled like the old dropdown
+  card_sheet_ui <- function(suit, cards, inputId, selected) {
+    items <- if (length(cards) == 0) {
+      div(class = "sheet-card-item disabled", "No cards")
+    } else {
+      lapply(cards, function(card) {
+        is_curr <- identical(selected, card)
+        div(
+          class = paste("sheet-card-item", if (is_curr) "is-selected" else ""),
+          onclick = sprintf(
+            "Shiny.setInputValue('%s', '%s', {priority: 'event'})",
+            inputId,
+            gsub("'", "\\\\'", card)
+          ),
+          span(card),
+          if (is_curr) {
+            span(class = "check-mark", style = "color: var(--gold);", "✦")
+          }
+        )
+      })
     }
-    lapply(cards, function(card) {
+
+    div(
+      style = "padding: 12px 16px 20px;",
+      div(class = "sheet-handle"),
       div(
-        class = paste(
-          "tarot-dropdown-item",
-          if (identical(selected, card)) "selected" else ""
+        style = "display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;",
+        h3(
+          class = "tarot-serif",
+          style = "margin: 0; font-size: 20px;",
+          suit
         ),
-        onclick = sprintf("selectTarotCard(this, '%s', '%s')", inputId, card),
-        span(card),
-        span(class = "check-mark", "✦")
-      )
-    })
+        span(style = "font-size: 12px; opacity: 0.6;", "Tap card to select")
+      ),
+      div(class = "sheet-card-list", items)
+    )
   }
 
-  output$pick_card_menu_items <- renderUI({
+  output$pick_card_sheet_ui <- renderUI({
     req(active_suit())
     cards <- suit_groups(names(reading_deck()$cards))[[active_suit()]]
-    card_menu_items(cards, "pick_card", input$pick_card)
+    card_sheet_ui(active_suit(), cards, "pick_card", input$pick_card)
   })
 
-  output$lookup_card_menu_items <- renderUI({
+  output$lookup_card_sheet_ui <- renderUI({
     req(active_suit())
     cards <- suit_groups(names(lookup_deck()$cards))[[active_suit()]]
-    card_menu_items(cards, "lookup_card", input$lookup_card)
+    card_sheet_ui(active_suit(), cards, "lookup_card", input$lookup_card)
+  })
+
+  # Close the picker sheets once a card is chosen
+  observeEvent(input$pick_card, {
+    updateF7Sheet(id = "pick_card_sheet", session = session)
+  })
+  observeEvent(input$lookup_card, {
+    updateF7Sheet(id = "lookup_card_sheet", session = session)
   })
 
   # Show the currently picked card since there is no select box label anymore
@@ -833,7 +854,7 @@ server <- function(input, output, session) {
   })
 
   # Render History Tab
-  output$history_ui <- renderUI({
+  output$log_ui <- renderUI({
     readings <- saved_readings()
     cards <- saved_cards()
     if (nrow(readings) == 0) {
