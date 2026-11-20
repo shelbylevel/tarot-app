@@ -4,6 +4,11 @@ library(markdown)
 library(stringr)
 library(dplyr)
 library(purrr)
+library(googlesheets4)
+
+# Authenticate non-interactively using the Connect Cloud secret variable
+gs4_auth(path = Sys.getenv("GSHEET_JSON"))
+sheet_id <- Sys.getenv("GSHEET_ID")
 
 # ==============================================================================
 # 1. PARSE ALL DECK GUIDEBOOKS IN data/
@@ -107,25 +112,44 @@ caps_keywords <- function(md_text) {
   })
 }
 
-log_file <- "reading_log.csv"
+# Schema for the two Google Sheets tabs
+empty_readings <- data.frame(
+  reading_id = character(),
+  date = character(),
+  time = character(),
+  deck = character(),
+  spread_type = character(),
+  question = character(),
+  notes = character(),
+  stringsAsFactors = FALSE
+)
 
-# Helper to load existing reading logs
-load_logs <- function() {
-  if (file.exists(log_file)) {
-    logs <- read.csv(log_file, stringsAsFactors = FALSE)
-    logs$id <- as.character(logs$id)
-    logs
-  } else {
-    data.frame(
-      id = character(),
-      date = character(),
-      deck = character(),
-      question = character(),
-      cards_summary = character(),
-      notes = character(),
-      stringsAsFactors = FALSE
-    )
-  }
+empty_cards <- data.frame(
+  reading_id = character(),
+  date = character(),
+  position_num = integer(),
+  position_label = character(),
+  card = character(),
+  orientation = character(),
+  card_notes = character(),
+  stringsAsFactors = FALSE
+)
+
+# Load both tabs; fall back to empty frames if a tab is missing
+load_readings <- function() {
+  df <- tryCatch(
+    read_sheet(sheet_id, sheet = "readings", col_types = "ccccccc"),
+    error = function(e) empty_readings
+  )
+  if (nrow(df) == 0) empty_readings else as.data.frame(df)
+}
+
+load_cards <- function() {
+  df <- tryCatch(
+    read_sheet(sheet_id, sheet = "cards", col_types = "ccicccc"),
+    error = function(e) empty_cards
+  )
+  if (nrow(df) == 0) empty_cards else as.data.frame(df)
 }
 
 # ==============================================================================
@@ -171,6 +195,11 @@ ui <- f7Page(
             "Deck Used:",
             choices = deck_choices
           ),
+          f7Text(
+            "spread_type",
+            "Spread Type (Optional):",
+            placeholder = "e.g., Three Card, Celtic Cross"
+          ),
           f7TextArea(
             "reading_question",
             "Question or Intention:",
@@ -198,6 +227,11 @@ ui <- f7Page(
             "Orientation:",
             choices = c("Upright", "Reversed"),
             inline = TRUE
+          ),
+          f7TextArea(
+            "pick_notes",
+            "Notes for This Card (Optional):",
+            placeholder = "First impressions, imagery that stood out..."
           ),
           br(),
           f7Button(
@@ -261,8 +295,9 @@ server <- function(input, output, session) {
   # Reactive list storing cards added to the current spread
   current_spread <- reactiveVal(list())
 
-  # Reactive trigger for refreshing history
-  saved_logs <- reactiveVal(load_logs())
+  # Reactive triggers for refreshing history
+  saved_readings <- reactiveVal(load_readings())
+  saved_cards <- reactiveVal(load_cards())
 
   # Currently selected deck for the New Reading tab
   reading_deck <- reactive({
@@ -308,11 +343,22 @@ server <- function(input, output, session) {
       position = pos_label,
       card = input$pick_card,
       orientation = input$pick_orient,
+      notes = str_trim(input$pick_notes),
       deck = input$deck_name
     )
 
     current_spread(append(spread, list(new_entry)))
     updateF7Text("pick_pos", value = "", session = session) # Reset position box for next card
+    updateF7TextArea("pick_notes", value = "", session = session)
+  })
+
+  # Remove a single card from the spread
+  observeEvent(input$remove_card_idx, {
+    spread <- current_spread()
+    idx <- input$remove_card_idx
+    if (idx >= 1 && idx <= length(spread)) {
+      current_spread(spread[-idx])
+    }
   })
 
   # Clear spread
@@ -356,7 +402,19 @@ server <- function(input, output, session) {
         div(
           style = "display: flex; justify-content: space-between; align-items: center;",
           tags$span(tags$strong(item$position), " — ", item$card),
-          tags$span(class = badge_class, item$orientation)
+          div(
+            style = "display: flex; gap: 8px; align-items: center;",
+            tags$span(class = badge_class, item$orientation),
+            tags$a(
+              class = "remove-card-btn",
+              style = "cursor: pointer; color: var(--f7-color-red, #ff3b30);",
+              onclick = sprintf(
+                "Shiny.setInputValue('remove_card_idx', %d, {priority: 'event'})",
+                idx
+              ),
+              f7Icon("xmark_circle_fill")
+            )
+          )
         ),
         hr(),
         div(
@@ -373,7 +431,14 @@ server <- function(input, output, session) {
             style = "flex: 1; font-size: 14px;",
             HTML(markdownToHTML(text = md_text, fragment.only = TRUE))
           )
-        )
+        ),
+        if (!is.null(item$notes) && item$notes != "") {
+          div(
+            class = "notes-box",
+            tags$strong("Your note: "),
+            item$notes
+          )
+        }
       )
     })
 
@@ -425,28 +490,43 @@ server <- function(input, output, session) {
     spread <- current_spread()
     req(length(spread) > 0)
 
-    summary_str <- map_chr(spread, function(x) {
-      paste0(x$position, ": ", x$card, " (", x$orientation, ")")
-    }) |>
-      paste(collapse = " | ")
+    now <- Sys.time()
+    reading_id <- format(now, "%Y%m%d-%H%M%S")
 
-    new_row <- data.frame(
-      id = as.character(as.integer(Sys.time())),
-      date = format(Sys.time(), "%Y-%m-%d %I:%M %p"),
+    new_reading <- data.frame(
+      reading_id = reading_id,
+      date = format(now, "%Y-%m-%d"),
+      time = format(now, "%I:%M %p"),
       deck = input$deck_name,
+      spread_type = str_trim(input$spread_type),
       question = ifelse(
         str_trim(input$reading_question) == "",
         "General Pull",
         input$reading_question
       ),
-      cards_summary = summary_str,
       notes = input$reading_notes,
       stringsAsFactors = FALSE
     )
 
-    updated_logs <- bind_rows(new_row, saved_logs())
-    write.csv(updated_logs, log_file, row.names = FALSE)
-    saved_logs(updated_logs)
+    new_cards <- bind_rows(imap(spread, function(x, i) {
+      data.frame(
+        reading_id = reading_id,
+        date = format(now, "%Y-%m-%d"),
+        position_num = i,
+        position_label = x$position,
+        card = x$card,
+        orientation = x$orientation,
+        card_notes = x$notes,
+        stringsAsFactors = FALSE
+      )
+    }))
+
+    sheet_append(sheet_id, new_reading, sheet = "readings")
+    sheet_append(sheet_id, new_cards, sheet = "cards")
+
+    # Prepend locally so newest readings display first
+    saved_readings(bind_rows(new_reading, saved_readings()))
+    saved_cards(bind_rows(saved_cards(), new_cards))
 
     # Reset spread & notify user
     current_spread(list())
@@ -461,8 +541,9 @@ server <- function(input, output, session) {
 
   # Render History Tab
   output$history_ui <- renderUI({
-    logs <- saved_logs()
-    if (nrow(logs) == 0) {
+    readings <- saved_readings()
+    cards <- saved_cards()
+    if (nrow(readings) == 0) {
       return(f7Block(
         strong = TRUE,
         inset = TRUE,
@@ -470,17 +551,44 @@ server <- function(input, output, session) {
       ))
     }
 
-    map(seq_len(nrow(logs)), function(i) {
-      row <- logs[i, ]
-      card_items <- str_split(row$cards_summary, " \\| ")[[1]]
+    map(seq_len(nrow(readings)), function(i) {
+      row <- readings[i, ]
+      reading_cards <- cards |>
+        filter(reading_id == row$reading_id) |>
+        arrange(position_num)
+
+      card_items <- pmap_chr(
+        reading_cards,
+        function(
+          position_label,
+          card,
+          orientation,
+          card_notes,
+          ...
+        ) {
+          item <- paste0(position_label, ": ", card, " (", orientation, ")")
+          if (!is.na(card_notes) && str_trim(card_notes) != "") {
+            item <- paste0(item, " — ", card_notes)
+          }
+          item
+        }
+      )
 
       f7Card(
         div(
           style = "display: flex; justify-content: space-between; align-items: baseline;",
           tags$strong(row$question),
-          tags$span(class = "muted", row$date)
+          tags$span(class = "muted", paste(row$date, row$time))
         ),
-        tags$p(class = "muted", f7Icon("shippingbox"), " Deck: ", row$deck),
+        tags$p(
+          class = "muted",
+          f7Icon("shippingbox"),
+          " Deck: ",
+          row$deck,
+          if (!is.na(row$spread_type) && str_trim(row$spread_type) != "") {
+            paste0(" · ", row$spread_type)
+          }
+        ),
         tags$ul(
           style = "margin: 4px 0 8px; padding-left: 20px; font-size: 14px;",
           map(card_items, tags$li)
