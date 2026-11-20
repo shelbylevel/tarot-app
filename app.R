@@ -31,12 +31,22 @@ parse_guidebook <- function(file_path) {
     title <- str_trim(lines[1])
     body <- ifelse(length(lines) > 1, str_trim(lines[2]), "")
 
-    # Split Upright vs Reversed using #### Reversed
+    # Split on #### headers and match sections by name, dropping header lines
     parts <- str_split(body, "(?m)^####\\s+")[[1]]
-    upright_md <- str_trim(parts[1])
+    parts <- str_trim(parts[nzchar(str_trim(parts))])
+    upright_md <- str_trim(str_remove(
+      parts[str_detect(parts, regex("^upright", ignore_case = TRUE))][1],
+      regex("^upright\\s*\n*", ignore_case = TRUE)
+    ))
+    reversed_parts <- parts[
+      str_detect(parts, regex("^reversed", ignore_case = TRUE))
+    ]
     reversed_md <- ifelse(
-      length(parts) > 1,
-      paste0("#### ", str_trim(parts[2])),
+      length(reversed_parts) > 0,
+      str_trim(str_remove(
+        reversed_parts[1],
+        regex("^reversed\\s*\n*", ignore_case = TRUE)
+      )),
       ""
     )
 
@@ -80,6 +90,17 @@ decks <- map(md_files, function(f) {
 })
 names(decks) <- map_chr(decks, "name")
 deck_choices <- names(decks)
+
+# Group a deck's card titles into Major Arcana and the four suits
+suit_groups <- function(card_titles) {
+  suits <- c("Wands", "Cups", "Swords", "Pentacles")
+  groups <- map(suits, function(s) {
+    card_titles[str_detect(card_titles, paste0(s, "$"))]
+  })
+  names(groups) <- suits
+  majors <- card_titles[!card_titles %in% unlist(groups)]
+  c(list("Major Arcana" = majors), groups)
+}
 
 # Serve card images: inst/img/<deck_slug>/<card_slug>.jpg
 addResourcePath("card-images", "inst/img")
@@ -168,7 +189,41 @@ ui <- f7Page(
       rel = "stylesheet",
       href = "https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;600&display=swap"
     ),
-    tags$link(rel = "stylesheet", href = "tarot.css")
+    tags$link(rel = "stylesheet", href = "tarot.css"),
+    tags$script(HTML(
+      "function selectTarotCard(el, inputId, val) {
+        var menu = el.closest('.tarot-dropdown-menu');
+        menu.querySelectorAll('.tarot-dropdown-item').forEach(function(item) {
+          item.classList.remove('selected');
+        });
+        el.classList.add('selected');
+        menu.classList.remove('open');
+        Shiny.setInputValue(inputId, val, {priority: 'event'});
+      }
+      document.addEventListener('click', function(e) {
+        document.querySelectorAll('.tarot-dropdown-menu.open').forEach(function(menu) {
+          if (!menu.contains(e.target) && !e.target.closest('.suit-chip')) {
+            menu.classList.remove('open');
+          }
+        });
+      });
+      $(document).on('click', '.suit-chip', function() {
+        var chip = $(this);
+        chip.siblings('.suit-chip').removeClass('active');
+        chip.addClass('active');
+        var menu = $('#' + chip.parent().data('target'));
+        var rect = chip[0].getBoundingClientRect();
+        menu.css({left: rect.left, top: rect.bottom + 8});
+        menu.addClass('open');
+        Shiny.setInputValue('suit_filter', chip.data('suit'), {priority: 'event'});
+      });
+      $(document).on('click', '.orient-chip', function() {
+        var chip = $(this);
+        chip.siblings('.orient-chip').removeClass('active');
+        chip.addClass('active');
+        Shiny.setInputValue('pick_orient', chip.data('orient'), {priority: 'event'});
+      });"
+    ))
   ),
   f7TabLayout(
     navbar = f7Navbar(
@@ -192,12 +247,12 @@ ui <- f7Page(
           div(class = "section-title", "1. Spread Setup"),
           f7Select(
             "deck_name",
-            "Deck Used:",
+            "Select a Deck",
             choices = deck_choices
           ),
           f7Text(
             "spread_type",
-            "Spread Type (Optional):",
+            "Spread Type",
             placeholder = "e.g., Three Card, Celtic Cross"
           ),
           f7TextArea(
@@ -211,22 +266,65 @@ ui <- f7Page(
           strong = TRUE,
           inset = TRUE,
           div(class = "section-title", "2. Add Cards Drawn"),
-          selectInput(
-            "pick_card",
-            "Card Drawn:",
-            choices = NULL,
-            width = "100%"
-          ),
           f7Text(
             "pick_pos",
-            "Position (Optional):",
+            "Position",
             placeholder = "e.g., Past / Situation"
           ),
-          radioButtons(
-            "pick_orient",
-            "Orientation:",
-            choices = c("Upright", "Reversed"),
-            inline = TRUE
+          div(
+            class = "chip-row",
+            `data-target` = "pick_card_menu",
+            span(
+              class = "tarot-chip suit-chip",
+              `data-suit` = "Major Arcana",
+              f7Icon("sparkles"),
+              "Major Arcana"
+            ),
+            span(
+              class = "tarot-chip suit-chip",
+              `data-suit` = "Wands",
+              f7Icon("flame"),
+              "Wands"
+            ),
+            span(
+              class = "tarot-chip suit-chip",
+              `data-suit` = "Cups",
+              f7Icon("drop"),
+              "Cups"
+            ),
+            span(
+              class = "tarot-chip suit-chip",
+              `data-suit` = "Swords",
+              f7Icon("wind"),
+              "Swords"
+            ),
+            span(
+              class = "tarot-chip suit-chip",
+              `data-suit` = "Pentacles",
+              f7Icon("tree"),
+              "Pentacles"
+            )
+          ),
+          div(
+            id = "pick_card_menu",
+            class = "tarot-dropdown-menu",
+            uiOutput("pick_card_menu_items")
+          ),
+          uiOutput("pick_card_selected"),
+          div(
+            class = "chip-row orient-chips",
+            span(
+              class = "tarot-chip orient-chip active",
+              `data-orient` = "Upright",
+              f7Icon("arrow_up"),
+              "Upright"
+            ),
+            span(
+              class = "tarot-chip orient-chip",
+              `data-orient` = "Reversed",
+              f7Icon("arrow_down"),
+              "Reversed"
+            )
           ),
           f7TextArea(
             "pick_notes",
@@ -260,6 +358,7 @@ ui <- f7Page(
 
       # --- TAB 3: QUICK GUIDEBOOK LOOKUP ---
       f7Tab(
+        title = "Guidebook",
         tabName = "Guidebook",
         icon = f7Icon("book"),
         f7Block(
@@ -270,11 +369,44 @@ ui <- f7Page(
             "Deck:",
             choices = deck_choices
           ),
-          selectInput(
-            "lookup_card",
-            "Browse Any Card:",
-            choices = NULL,
-            width = "100%"
+          div(
+            class = "chip-row",
+            `data-target` = "lookup_card_menu",
+            span(
+              class = "tarot-chip suit-chip",
+              `data-suit` = "Major Arcana",
+              f7Icon("sparkles"),
+              "Major Arcana"
+            ),
+            span(
+              class = "tarot-chip suit-chip",
+              `data-suit` = "Wands",
+              f7Icon("flame"),
+              "Wands"
+            ),
+            span(
+              class = "tarot-chip suit-chip",
+              `data-suit` = "Cups",
+              f7Icon("drop"),
+              "Cups"
+            ),
+            span(
+              class = "tarot-chip suit-chip",
+              `data-suit` = "Swords",
+              f7Icon("wind"),
+              "Swords"
+            ),
+            span(
+              class = "tarot-chip suit-chip",
+              `data-suit` = "Pentacles",
+              f7Icon("tree"),
+              "Pentacles"
+            )
+          ),
+          div(
+            id = "lookup_card_menu",
+            class = "tarot-dropdown-menu",
+            uiOutput("lookup_card_menu_items")
           )
         ),
         f7Block(
@@ -311,21 +443,58 @@ server <- function(input, output, session) {
     decks[[input$lookup_deck]]
   })
 
-  # Keep card dropdowns in sync with the selected deck
-  observeEvent(input$deck_name, {
-    updateSelectInput(
-      session,
-      "pick_card",
-      choices = names(reading_deck()$cards)
+  # Active suit filter, driven by the suit chips (none selected initially)
+  active_suit <- reactiveVal(NULL)
+  observeEvent(input$suit_filter, {
+    active_suit(input$suit_filter)
+  })
+
+  # Render floating card menus in sync with the selected deck and suit chip
+  card_menu_items <- function(cards, inputId, selected) {
+    if (length(cards) == 0) {
+      return(div(class = "tarot-dropdown-item disabled", "No cards"))
+    }
+    lapply(cards, function(card) {
+      div(
+        class = paste(
+          "tarot-dropdown-item",
+          if (identical(selected, card)) "selected" else ""
+        ),
+        onclick = sprintf("selectTarotCard(this, '%s', '%s')", inputId, card),
+        span(card),
+        span(class = "check-mark", "✦")
+      )
+    })
+  }
+
+  output$pick_card_menu_items <- renderUI({
+    req(active_suit())
+    cards <- suit_groups(names(reading_deck()$cards))[[active_suit()]]
+    card_menu_items(cards, "pick_card", input$pick_card)
+  })
+
+  output$lookup_card_menu_items <- renderUI({
+    req(active_suit())
+    cards <- suit_groups(names(lookup_deck()$cards))[[active_suit()]]
+    card_menu_items(cards, "lookup_card", input$lookup_card)
+  })
+
+  # Show the currently picked card since there is no select box label anymore
+  output$pick_card_selected <- renderUI({
+    if (is.null(input$pick_card)) {
+      return(NULL)
+    }
+    div(
+      class = "muted",
+      style = "margin: 4px 0 8px;",
+      paste("Card Drawn:", input$pick_card)
     )
   })
 
-  observeEvent(input$lookup_deck, {
-    updateSelectInput(
-      session,
-      "lookup_card",
-      choices = names(lookup_deck()$cards)
-    )
+  # Card orientation, driven by the orientation chips (Upright by default)
+  pick_orientation <- reactiveVal("Upright")
+  observeEvent(input$pick_orient, {
+    pick_orientation(input$pick_orient)
   })
 
   # Add card to current spread
@@ -342,7 +511,7 @@ server <- function(input, output, session) {
     new_entry <- list(
       position = pos_label,
       card = input$pick_card,
-      orientation = input$pick_orient,
+      orientation = pick_orientation(),
       notes = str_trim(input$pick_notes),
       deck = input$deck_name
     )
@@ -384,8 +553,7 @@ server <- function(input, output, session) {
       md_text <- if (
         item$orientation == "Reversed" && card_data$reversed != ""
       ) {
-        # Drop the "#### Reversed" header so only keywords + meaning show
-        str_remove(card_data$reversed, "^####\\s+Reversed\\s*\n+")
+        card_data$reversed
       } else {
         card_data$upright
       }
@@ -611,9 +779,19 @@ server <- function(input, output, session) {
     card_data <- deck$cards[[input$lookup_card]]
     req(card_data)
 
-    md_text <- paste0("### ", card_data$title, "\n\n", card_data$upright)
+    # Always show both meanings, upright first, with orientation labels
+    md_text <- paste0(
+      "### ",
+      card_data$title,
+      "\n\n#### Upright\n\n",
+      card_data$upright
+    )
     if (card_data$reversed != "") {
-      md_text <- paste0(md_text, "\n\n---\n\n", card_data$reversed)
+      md_text <- paste0(
+        md_text,
+        "\n\n---\n\n#### Reversed\n\n",
+        card_data$reversed
+      )
     }
     md_text <- caps_keywords(md_text)
 

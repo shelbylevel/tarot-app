@@ -1,5 +1,3 @@
-/* Tarot Journal theme — ported from app-ui.R */
-
 :root {
   --bg: #131416;
   --surface: #1a1b1e;
@@ -12,6 +10,9 @@
   --f7-theme-color: var(--gold);
   --f7-page-bg-color: var(--bg);
   --f7-block-strong-bg-color: var(--surface);
+  --f7-block-strong-border-color: var(--border);
+  --f7-block-inset-border-radius: 18px;
+  --f7-block-strong-inset-border-radius: 18px;
   --f7-list-bg-color: var(--surface);
   --f7-card-bg-color: var(--surface);
   --f7-text-color: #ece8e1;
@@ -20,6 +21,33 @@
 .page-content {
   background: var(--bg) !important;
   color: #ece8e1;
+}
+
+/* F7 blocks: apply surface bg, gold border, and rounded corners.
+   shinyMobile's bundled CSS sets `.block-strong { background-color: transparent }`
+   after the var-based rule, so the background must be forced here. */
+.block-strong {
+  background-color: var(--surface) !important;
+  color: #ece8e1;
+  border: 1px solid var(--border);
+}
+
+.block-strong.inset {
+  border-radius: 18px;
+}
+
+.block-title {
+  color: var(--gold-soft);
+}
+
+/* Input labels (Deck Used, Spread Type, etc.) in the heading style */
+.item-label,
+.item-floating-label,
+label.label,
+.control-label {
+  font-family: 'Cinzel Decorative', Georgia, serif !important;
+  color: var(--gold-soft) !important;
+  letter-spacing: 0.03em;
 }
 
 .tarot-serif,
@@ -42,7 +70,10 @@
   box-shadow: none !important;
   color: #ece8e1 !important;
 }
-.sheet-modal { border-radius: 24px 24px 0 0 !important; }
+
+.sheet-modal {
+  border-radius: 24px 24px 0 0 !important;
+}
 
 .card-header {
   color: var(--gold-soft);
@@ -59,10 +90,106 @@
   border: 1px solid var(--border);
   color: var(--gold);
 }
+
 .tarot-chip.active {
   background: var(--gold);
   border-color: var(--gold);
   color: var(--bg);
+}
+
+/* Horizontally scrolling chip rows (suit filters) */
+.chip-row {
+  display: flex;
+  gap: 8px;
+  padding: 4px 0 12px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.chip-row::-webkit-scrollbar {
+  display: none;
+}
+
+.suit-chip,
+.orient-chip {
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.suit-chip .f7-icons,
+.orient-chip .f7-icons {
+  font-size: 13px;
+}
+
+.orient-chips {
+  padding-bottom: 4px;
+}
+
+/* Floating card menu anchored under the active suit chip.
+   position: fixed (set via JS from the chip's bounding rect) so the menu
+   is not clipped by the horizontally scrolling .chip-row. */
+.tarot-dropdown-menu {
+  position: fixed;
+  min-width: 200px;
+  max-width: 260px;
+  max-height: 50vh;
+  overflow-y: auto;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 6px;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.65);
+  z-index: 13000;
+  opacity: 0;
+  transform: translateY(-6px) scale(0.97);
+  pointer-events: none;
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.tarot-dropdown-menu.open {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+.tarot-dropdown-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 12px;
+  border-radius: 10px;
+  font-size: 13px;
+  color: #ece8e1;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.tarot-dropdown-item:hover {
+  background: rgba(216, 178, 130, 0.12);
+}
+
+.tarot-dropdown-item.selected {
+  background: rgba(216, 178, 130, 0.18);
+  color: var(--gold-soft);
+  font-weight: 600;
+}
+
+.tarot-dropdown-item.disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.tarot-dropdown-item .check-mark {
+  opacity: 0;
+  color: var(--gold);
+  font-size: 11px;
+}
+
+.tarot-dropdown-item.selected .check-mark {
+  opacity: 1;
 }
 
 /* Orientation badges */
@@ -75,6 +202,7 @@
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
+
 .badge-reversed {
   background-color: transparent;
   border: 1px solid var(--gold);
@@ -118,6 +246,7 @@
   border: 1px solid var(--border);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
 }
+
 .tarot-card-img.is-reversed {
   transform: rotate(180deg);
 }
