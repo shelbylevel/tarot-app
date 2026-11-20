@@ -10,8 +10,8 @@ id = "01a1f62d-8bf1-e3c2-976e-1c335e85d62f"
 dashboard_url = "https://connect.posit.cloud/shelbylevel/content/01a1f62d-8bf1-e3c2-976e-1c335e85d62f"
 direct_url = "https://01a1f62d-8bf1-e3c2-976e-1c335e85d62f.share.connect.posit.cloud"
 logs_url = "https://connect.posit.cloud/shelbylevel/content/01a1f62d-8bf1-e3c2-976e-1c335e85d62f/history"
-deployed_at = "2026-11-19T23:39:19.064Z"
-bundle_id = "01a1f62d-8bf1-8e37-ff10-e1fbd08c178c"
+deployed_at = "2026-11-20T03:33:58.597Z"
+bundle_id = "01a1f704-88b0-7bc3-b0da-88fe70382684"
 files = [
     ".posit/publish/deployments/deployment-VMM7.toml",
     ".posit/publish/tarot-app-H9L5.toml",
@@ -208,6 +208,31 @@ author = "Dirk Eddelbuettel [aut, cre] (ORCID: <https://orcid.org/0000-0001-6419
 maintainer = "Dirk Eddelbuettel <edd@debian.org>"
 repository = "CRAN"
 
+[renv.packages.askpass]
+package = "askpass"
+version = "1.2.1"
+source = "Repository"
+type = "Package"
+title = "Password Entry Utilities for R, Git, and SSH"
+"authors@r" = "person(\"Jeroen\", \"Ooms\", role = c(\"aut\", \"cre\"),  email = \"jeroenooms@gmail.com\", comment = c(ORCID = \"0000-0002-4035-0289\"))"
+description = "Cross-platform utilities for prompting the user for credentials or a  passphrase, for example to authenticate with a server or read a protected key. Includes native programs for MacOS and Windows, hence no 'tcltk' is required.  Password entry can be invoked in two different ways: directly from R via the  askpass() function, or indirectly as password-entry back-end for 'ssh-agent'  or 'git-credential' via the SSH_ASKPASS and GIT_ASKPASS environment variables. Thereby the user can be prompted for credentials or a passphrase if needed  when R calls out to git or ssh."
+license = "MIT + file LICENSE"
+url = "https://r-lib.r-universe.dev/askpass"
+bug_reports = "https://github.com/r-lib/askpass/issues"
+encoding = "UTF-8"
+imports = [
+    "sys (>= 2.1)",
+]
+roxygen_note = "7.2.3"
+suggests = [
+    "testthat",
+]
+language = "en-US"
+needs_compilation = "yes"
+author = "Jeroen Ooms [aut, cre] (<https://orcid.org/0000-0002-4035-0289>)"
+maintainer = "Jeroen Ooms <jeroenooms@gmail.com>"
+repository = "CRAN"
+
 [renv.packages.base64enc]
 package = "base64enc"
 version = "0.1-6"
@@ -385,6 +410,37 @@ author = "Winston Chang [aut, cre], Posit Software, PBC [cph, fnd]"
 maintainer = "Winston Chang <winston@posit.co>"
 repository = "CRAN"
 
+[renv.packages.cellranger]
+package = "cellranger"
+version = "1.1.0"
+source = "Repository"
+title = "Translate Spreadsheet Cell Ranges to Rows and Columns"
+"authors@r" = "c( person(\"Jennifer\", \"Bryan\", , \"jenny@stat.ubc.ca\", c(\"cre\", \"aut\")), person(\"Hadley\", \"Wickham\", , \"hadley@rstudio.com\", \"ctb\") )"
+description = "Helper functions to work with spreadsheets and the \"A1:D10\" style of cell range specification."
+depends = [
+    "R (>= 3.0.0)",
+]
+license = "MIT + file LICENSE"
+lazy_data = "true"
+url = "https://github.com/rsheets/cellranger"
+bug_reports = "https://github.com/rsheets/cellranger/issues"
+suggests = [
+    "covr",
+    "testthat (>= 1.0.0)",
+    "knitr",
+    "rmarkdown",
+]
+roxygen_note = "5.0.1.9000"
+vignette_builder = "knitr"
+imports = [
+    "rematch",
+    "tibble",
+]
+needs_compilation = "no"
+author = "Jennifer Bryan [cre, aut], Hadley Wickham [ctb]"
+maintainer = "Jennifer Bryan <jenny@stat.ubc.ca>"
+repository = "CRAN"
+
 [renv.packages.class]
 package = "class"
 version = "7.3-24"
@@ -538,6 +594,40 @@ language = "en-US"
 encoding = "UTF-8"
 needs_compilation = "yes"
 author = "Jeroen Ooms [aut, cre] (ORCID: <https://orcid.org/0000-0002-4035-0289>), John MacFarlane [cph] (Author of cmark)"
+maintainer = "Jeroen Ooms <jeroenooms@gmail.com>"
+repository = "CRAN"
+
+[renv.packages.curl]
+package = "curl"
+version = "8.0.0"
+source = "Repository"
+type = "Package"
+title = "A Modern and Flexible Web Client for R"
+"authors@r" = "c( person(\"Jeroen\", \"Ooms\", role = c(\"aut\", \"cre\"), email = \"jeroenooms@gmail.com\", comment = c(ORCID = \"0000-0002-4035-0289\")), person(\"Hadley\", \"Wickham\", role = \"ctb\"), person(\"Posit Software, PBC\", role = \"cph\"))"
+description = "Bindings to 'libcurl' <https://curl.se/libcurl/> for performing fully configurable HTTP/FTP requests where responses can be processed in memory, on disk, or streaming via the callback or connection interfaces. Some knowledge of 'libcurl' is recommended; for a more-user-friendly web client see the  'httr2' package which builds on this package with http specific tools and logic."
+license = "MIT + file LICENSE"
+system_requirements = "libcurl (>= 7.73): libcurl-devel (rpm) or libcurl4-openssl-dev (deb)"
+url = "https://jeroen.r-universe.dev/curl"
+bug_reports = "https://github.com/jeroen/curl/issues"
+suggests = [
+    "spelling",
+    "testthat (>= 1.0.0)",
+    "knitr",
+    "jsonlite",
+    "later",
+    "rmarkdown",
+    "httpuv (>= 1.4.4)",
+    "webutils",
+]
+vignette_builder = "knitr"
+depends = [
+    "R (>= 3.0.0)",
+]
+encoding = "UTF-8"
+language = "en-US"
+"config/roxygen2/version" = "8.0.0"
+needs_compilation = "yes"
+author = "Jeroen Ooms [aut, cre] (ORCID: <https://orcid.org/0000-0002-4035-0289>), Hadley Wickham [ctb], Posit Software, PBC [cph]"
 maintainer = "Jeroen Ooms <jeroenooms@gmail.com>"
 repository = "CRAN"
 
@@ -756,6 +846,56 @@ author = "Jim Hester [aut], Hadley Wickham [aut], Gábor Csárdi [aut], Jeroen O
 maintainer = "Jeroen Ooms <jeroenooms@gmail.com>"
 repository = "CRAN"
 
+[renv.packages.gargle]
+package = "gargle"
+version = "1.7.0"
+source = "Repository"
+title = "Utilities for Working with Google APIs"
+"authors@r" = "c( person(\"Jennifer\", \"Bryan\", , \"jenny@posit.co\", role = c(\"aut\", \"cre\"), comment = c(ORCID = \"0000-0002-6983-2759\")), person(\"Craig\", \"Citro\", , \"craigcitro@google.com\", role = \"aut\"), person(\"Hadley\", \"Wickham\", , \"hadley@posit.co\", role = \"aut\", comment = c(ORCID = \"0000-0003-4757-117X\")), person(\"Google Inc\", role = \"cph\"), person(\"Posit Software, PBC\", role = c(\"cph\", \"fnd\"), comment = c(ROR = \"03wc8by49\")) )"
+description = "Provides utilities for working with Google APIs <https://developers.google.com/apis-explorer>.  This includes functions and classes for handling common credential types and for preparing, executing, and processing HTTP requests."
+license = "MIT + file LICENSE"
+url = "https://gargle.r-lib.org, https://github.com/r-lib/gargle"
+bug_reports = "https://github.com/r-lib/gargle/issues"
+depends = [
+    "R (>= 4.2)",
+]
+imports = [
+    "cli (>= 3.0.1)",
+    "fs (>= 1.3.1)",
+    "glue (>= 1.3.0)",
+    "httr (>= 1.4.5)",
+    "jsonlite",
+    "lifecycle",
+    "openssl",
+    "R6",
+    "rappdirs",
+    "rlang (>= 1.1.0)",
+    "stats",
+    "utils",
+    "withr",
+]
+suggests = [
+    "aws.ec2metadata",
+    "aws.signature",
+    "covr",
+    "httpuv",
+    "knitr",
+    "rmarkdown",
+    "spelling",
+    "testthat (>= 3.1.7)",
+]
+vignette_builder = "knitr"
+"config/needs/website" = "tidyverse/tidytemplate"
+"config/roxygen2/version" = "8.1.0"
+"config/testthat/edition" = "3"
+"config/usethis/last-upkeep" = "2026-10-20"
+encoding = "UTF-8"
+language = "en-US"
+needs_compilation = "no"
+author = "Jennifer Bryan [aut, cre] (ORCID: <https://orcid.org/0000-0002-6983-2759>), Craig Citro [aut], Hadley Wickham [aut] (ORCID: <https://orcid.org/0000-0003-4757-117X>), Google Inc [cph], Posit Software, PBC [cph, fnd] (ROR: <https://ror.org/03wc8by49>)"
+maintainer = "Jennifer Bryan <jenny@posit.co>"
+repository = "CRAN"
+
 [renv.packages.generics]
 package = "generics"
 version = "0.1.4"
@@ -826,6 +966,104 @@ encoding = "UTF-8"
 roxygen_note = "7.3.3"
 needs_compilation = "yes"
 author = "Jim Hester [aut] (ORCID: <https://orcid.org/0000-0002-2739-7082>), Jennifer Bryan [aut, cre] (ORCID: <https://orcid.org/0000-0002-6983-2759>), Posit Software, PBC [cph, fnd] (ROR: <https://ror.org/03wc8by49>)"
+maintainer = "Jennifer Bryan <jenny@posit.co>"
+repository = "CRAN"
+
+[renv.packages.googledrive]
+package = "googledrive"
+version = "2.1.2"
+source = "Repository"
+title = "An Interface to Google Drive"
+"authors@r" = "c( person(\"Lucy\", \"D'Agostino McGowan\", , role = \"aut\"), person(\"Jennifer\", \"Bryan\", , \"jenny@posit.co\", role = c(\"aut\", \"cre\"), comment = c(ORCID = \"0000-0002-6983-2759\")), person(\"Posit Software, PBC\", role = c(\"cph\", \"fnd\")) )"
+description = "Manage Google Drive files from R."
+license = "MIT + file LICENSE"
+url = "https://googledrive.tidyverse.org, https://github.com/tidyverse/googledrive"
+bug_reports = "https://github.com/tidyverse/googledrive/issues"
+depends = [
+    "R (>= 4.1)",
+]
+imports = [
+    "cli (>= 3.0.0)",
+    "gargle (>= 1.6.0)",
+    "glue (>= 1.4.2)",
+    "httr",
+    "jsonlite",
+    "lifecycle",
+    "magrittr",
+    "pillar (>= 1.9.0)",
+    "purrr (>= 1.0.1)",
+    "rlang (>= 1.0.2)",
+    "tibble (>= 2.0.0)",
+    "utils",
+    "uuid",
+    "vctrs (>= 0.3.0)",
+    "withr",
+]
+suggests = [
+    "curl",
+    "dplyr (>= 1.0.0)",
+    "knitr",
+    "rmarkdown",
+    "spelling",
+    "testthat (>= 3.1.5)",
+]
+vignette_builder = "knitr"
+"config/needs/website" = "tidyverse, tidyverse/tidytemplate"
+"config/testthat/edition" = "3"
+encoding = "UTF-8"
+language = "en-US"
+roxygen_note = "7.3.3"
+needs_compilation = "no"
+author = "Lucy D'Agostino McGowan [aut], Jennifer Bryan [aut, cre] (ORCID: <https://orcid.org/0000-0002-6983-2759>), Posit Software, PBC [cph, fnd]"
+maintainer = "Jennifer Bryan <jenny@posit.co>"
+repository = "CRAN"
+
+[renv.packages.googlesheets4]
+package = "googlesheets4"
+version = "1.1.3"
+source = "Repository"
+title = "Access Google Sheets using the Sheets API V4"
+"authors@r" = "c( person(\"Jennifer\", \"Bryan\", , \"jenny@posit.co\", role = c(\"cre\", \"aut\"), comment = c(ORCID = \"0000-0002-6983-2759\")), person(\"Posit Software, PBC\", role = c(\"cph\", \"fnd\")) )"
+description = "Interact with Google Sheets through the Sheets API v4 <https://developers.google.com/sheets/api>. \"API\" is an acronym for \"application programming interface\"; the Sheets API allows users to interact with Google Sheets programmatically, instead of via a web browser. The \"v4\" refers to the fact that the Sheets API is currently at version 4. This package can read and write both the metadata and the cell data in a Sheet."
+license = "MIT + file LICENSE"
+url = "https://googlesheets4.tidyverse.org, https://github.com/tidyverse/googlesheets4"
+bug_reports = "https://github.com/tidyverse/googlesheets4/issues"
+depends = [
+    "R (>= 4.2)",
+]
+imports = [
+    "cellranger",
+    "cli (>= 3.0.0)",
+    "curl",
+    "gargle (>= 1.7.0)",
+    "glue (>= 1.3.0)",
+    "googledrive (>= 2.1.0)",
+    "httr",
+    "ids",
+    "magrittr",
+    "methods",
+    "purrr",
+    "rematch2",
+    "rlang (>= 1.0.2)",
+    "tibble (>= 2.1.1)",
+    "utils",
+    "vctrs (>= 0.2.3)",
+    "withr",
+]
+suggests = [
+    "readr",
+    "rmarkdown",
+    "spelling",
+    "testthat (>= 3.1.7)",
+]
+byte_compile = "true"
+"config/needs/website" = "tidyverse, tidyverse/tidytemplate"
+"config/roxygen2/version" = "8.1.0"
+"config/testthat/edition" = "3"
+encoding = "UTF-8"
+language = "en-US"
+needs_compilation = "no"
+author = "Jennifer Bryan [cre, aut] (ORCID: <https://orcid.org/0000-0002-6983-2759>), Posit Software, PBC [cph, fnd]"
 maintainer = "Jennifer Bryan <jenny@posit.co>"
 repository = "CRAN"
 
@@ -984,6 +1222,73 @@ collate = "'RcppExports.R' 'httpuv-package.R' 'httpuv.R' 'random_port.R' 'server
 needs_compilation = "yes"
 author = "Joe Cheng [aut], Winston Chang [aut, cre], Posit, PBC [cph, fnd] (ROR: <https://ror.org/03wc8by49>), Hector Corrada Bravo [ctb], Jeroen Ooms [ctb], Andrzej Krzemienski [cph] (optional.hpp), libuv project contributors [cph] (libuv library, see src/libuv/AUTHORS file), Joyent, Inc. and other Node contributors [cph] (libuv library, see src/libuv/AUTHORS file; and http-parser library, see src/http-parser/AUTHORS file), Niels Provos [cph] (libuv subcomponent: tree.h), Internet Systems Consortium, Inc. [cph] (libuv subcomponent: inet_pton and inet_ntop, contained in src/libuv/src/inet.c), Alexander Chemeris [cph] (libuv subcomponent: stdint-msvc2008.h (from msinttypes)), Google, Inc. [cph] (libuv subcomponent: pthread-fixes.c), Sony Mobile Communcations AB [cph] (libuv subcomponent: pthread-fixes.c), Berkeley Software Design Inc. [cph] (libuv subcomponent: android-ifaddrs.h, android-ifaddrs.c), Kenneth MacKay [cph] (libuv subcomponent: android-ifaddrs.h, android-ifaddrs.c), Emergya (Cloud4all, FP7/2007-2013, grant agreement no 289016) [cph] (libuv subcomponent: android-ifaddrs.h, android-ifaddrs.c), Steve Reid [aut] (SHA-1 implementation), James Brown [aut] (SHA-1 implementation), Bob Trower [aut] (base64 implementation), Alexander Peslyak [aut] (MD5 implementation), Trantor Standard Systems [cph] (base64 implementation), Igor Sysoev [cph] (http-parser)"
 maintainer = "Winston Chang <winston@posit.co>"
+repository = "CRAN"
+
+[renv.packages.httr]
+package = "httr"
+version = "1.4.9"
+source = "Repository"
+title = "Tools for Working with URLs and HTTP"
+"authors@r" = "c( person(\"Hadley\", \"Wickham\", , \"hadley@posit.co\", role = c(\"aut\", \"cre\")), person(\"Posit Software, PBC\", role = c(\"cph\", \"fnd\")) )"
+description = "Useful tools for working with HTTP organised by HTTP verbs (GET(), POST(), etc). Configuration functions make it easy to control additional request components (authenticate(), add_headers() and so on)."
+license = "MIT + file LICENSE"
+url = "https://httr.r-lib.org/, https://github.com/r-lib/httr"
+bug_reports = "https://github.com/r-lib/httr/issues"
+depends = [
+    "R (>= 3.6)",
+]
+imports = [
+    "curl (>= 5.1.0)",
+    "jsonlite",
+    "mime",
+    "openssl (>= 0.8)",
+    "R6",
+]
+suggests = [
+    "covr",
+    "httpuv",
+    "jpeg",
+    "knitr",
+    "png",
+    "readr",
+    "rmarkdown",
+    "testthat (>= 0.8.0)",
+    "xml2",
+]
+vignette_builder = "knitr"
+"config/needs/website" = "tidyverse/tidytemplate"
+"config/roxygen2/version" = "8.1.0"
+encoding = "UTF-8"
+needs_compilation = "no"
+author = "Hadley Wickham [aut, cre], Posit Software, PBC [cph, fnd]"
+maintainer = "Hadley Wickham <hadley@posit.co>"
+repository = "CRAN"
+
+[renv.packages.ids]
+package = "ids"
+version = "1.0.1"
+source = "Repository"
+title = "Generate Random Identifiers"
+"authors@r" = "person(\"Rich\", \"FitzJohn\", role = c(\"aut\", \"cre\"), email = \"rich.fitzjohn@gmail.com\")"
+description = "Generate random or human readable and pronounceable identifiers."
+license = "MIT + file LICENSE"
+url = "https://github.com/richfitz/ids"
+bug_reports = "https://github.com/richfitz/ids/issues"
+imports = [
+    "openssl",
+    "uuid",
+]
+suggests = [
+    "knitr",
+    "rcorpora",
+    "rmarkdown",
+    "testthat",
+]
+roxygen_note = "6.0.1"
+vignette_builder = "knitr"
+needs_compilation = "no"
+author = "Rich FitzJohn [aut, cre]"
+maintainer = "Rich FitzJohn <rich.fitzjohn@gmail.com>"
 repository = "CRAN"
 
 [renv.packages.jquerylib]
@@ -1396,6 +1701,39 @@ author = "Brian Ripley [aut, cre, cph], William Venables [cph]"
 maintainer = "Brian Ripley <Brian.Ripley@R-project.org>"
 repository = "CRAN"
 
+[renv.packages.openssl]
+package = "openssl"
+version = "2.4.2"
+source = "Repository"
+type = "Package"
+title = "Toolkit for Encryption, Signatures and Certificates Based on OpenSSL"
+"authors@r" = "c(person(\"Jeroen\", \"Ooms\", role = c(\"aut\", \"cre\"), email = \"jeroenooms@gmail.com\", comment = c(ORCID = \"0000-0002-4035-0289\")), person(\"Oliver\", \"Keyes\", role = \"ctb\"))"
+description = "Bindings to OpenSSL libssl and libcrypto, plus custom SSH key parsers. Supports RSA, DSA and EC curves P-256, P-384, P-521, and curve25519. Cryptographic signatures can either be created and verified manually or via x509 certificates.  AES can be used in cbc, ctr or gcm mode for symmetric encryption; RSA for asymmetric (public key) encryption or EC for Diffie Hellman. High-level envelope functions  combine RSA and AES for encrypting arbitrary sized data. Other utilities include key generators, hash functions (md5, sha1, sha256, etc), base64 encoder, a secure random number generator, and 'bignum' math methods for manually performing crypto  calculations on large multibyte integers."
+license = "MIT + file LICENSE"
+url = "https://jeroen.r-universe.dev/openssl"
+bug_reports = "https://github.com/jeroen/openssl/issues"
+system_requirements = "OpenSSL >= 1.0.2"
+vignette_builder = "knitr"
+imports = [
+    "askpass",
+]
+suggests = [
+    "curl",
+    "testthat (>= 2.1.0)",
+    "digest",
+    "knitr",
+    "rmarkdown",
+    "jsonlite",
+    "jose",
+    "sodium",
+]
+encoding = "UTF-8"
+"config/roxygen2/version" = "8.0.0"
+needs_compilation = "yes"
+author = "Jeroen Ooms [aut, cre] (ORCID: <https://orcid.org/0000-0002-4035-0289>), Oliver Keyes [ctb]"
+maintainer = "Jeroen Ooms <jeroenooms@gmail.com>"
+repository = "CRAN"
+
 [renv.packages.otel]
 package = "otel"
 version = "0.2.0"
@@ -1638,6 +1976,51 @@ roxygen_note = "7.3.3"
 needs_compilation = "yes"
 author = "Hadley Wickham [trl, cre, cph], Sridhar Ratnakumar [aut], Trent Mick [aut], ActiveState [cph] (R/appdir.r, R/cache.r, R/data.r, R/log.r translated from appdirs), Eddy Petrisor [ctb], Trevor Davis [trl, aut] (ORCID: <https://orcid.org/0000-0001-6341-4639>), Gabor Csardi [ctb], Gregory Jefferis [ctb], Posit Software, PBC [cph, fnd] (ROR: <https://ror.org/03wc8by49>)"
 maintainer = "Hadley Wickham <hadley@posit.co>"
+repository = "CRAN"
+
+[renv.packages.rematch]
+package = "rematch"
+version = "2.0.0"
+source = "Repository"
+title = "Match Regular Expressions with a Nicer 'API'"
+author = "Gabor Csardi"
+maintainer = "Gabor Csardi <csardi.gabor@gmail.com>"
+description = "A small wrapper on 'regexpr' to extract the matches and captured groups from the match of a regular expression to a character vector."
+license = "MIT + file LICENSE"
+url = "https://github.com/gaborcsardi/rematch"
+bug_reports = "https://github.com/gaborcsardi/rematch/issues"
+roxygen_note = "5.0.1.9000"
+suggests = [
+    "covr",
+    "testthat",
+]
+encoding = "UTF-8"
+needs_compilation = "no"
+repository = "CRAN"
+
+[renv.packages.rematch2]
+package = "rematch2"
+version = "2.1.2"
+source = "Repository"
+title = "Tidy Output from Regular Expression Matching"
+"authors@r" = "c( person(\"Gábor\", \"Csárdi\", email = \"csardi.gabor@gmail.com\", role = c(\"aut\", \"cre\")), person(\"Matthew\", \"Lincoln\", email = \"matthew.d.lincoln@gmail.com\", role = c(\"ctb\")))"
+description = "Wrappers on 'regexpr' and 'gregexpr' to return the match results in tidy data frames."
+license = "MIT + file LICENSE"
+lazy_data = "true"
+url = "https://github.com/r-lib/rematch2#readme"
+bug_reports = "https://github.com/r-lib/rematch2/issues"
+roxygen_note = "7.1.0"
+imports = [
+    "tibble",
+]
+suggests = [
+    "covr",
+    "testthat",
+]
+encoding = "UTF-8"
+needs_compilation = "no"
+author = "Gábor Csárdi [aut, cre], Matthew Lincoln [ctb]"
+maintainer = "Gábor Csárdi <csardi.gabor@gmail.com>"
 repository = "CRAN"
 
 [renv.packages.renv]
@@ -2080,6 +2463,30 @@ author = "Terry M Therneau [aut, cre], Thomas Lumley [ctb, trl] (original S->R p
 maintainer = "Terry M Therneau <terry.therneau@proton.me>"
 repository = "CRAN"
 
+[renv.packages.sys]
+package = "sys"
+version = "3.4.3"
+source = "Repository"
+type = "Package"
+title = "Powerful and Reliable Tools for Running System Commands in R"
+"authors@r" = "c(person(\"Jeroen\", \"Ooms\", role = c(\"aut\", \"cre\"),  email = \"jeroenooms@gmail.com\", comment = c(ORCID = \"0000-0002-4035-0289\")), person(\"Gábor\", \"Csárdi\", , \"csardi.gabor@gmail.com\", role = \"ctb\"))"
+description = "Drop-in replacements for the base system2() function with fine control and consistent behavior across platforms. Supports clean interruption, timeout,  background tasks, and streaming STDIN / STDOUT / STDERR over binary or text  connections. Arguments on Windows automatically get encoded and quoted to work  on different locales."
+license = "MIT + file LICENSE"
+url = "https://jeroen.r-universe.dev/sys"
+bug_reports = "https://github.com/jeroen/sys/issues"
+encoding = "UTF-8"
+roxygen_note = "7.1.1"
+suggests = [
+    "unix (>= 1.4)",
+    "spelling",
+    "testthat",
+]
+language = "en-US"
+needs_compilation = "yes"
+author = "Jeroen Ooms [aut, cre] (<https://orcid.org/0000-0002-4035-0289>), Gábor Csárdi [ctb]"
+maintainer = "Jeroen Ooms <jeroenooms@gmail.com>"
+repository = "CRAN"
+
 [renv.packages.tibble]
 package = "tibble"
 version = "3.3.1"
@@ -2217,6 +2624,24 @@ roxygen_note = "7.3.2.9000"
 needs_compilation = "yes"
 author = "Patrick O. Perry [aut, cph], Kirill Müller [cre] (ORCID: <https://orcid.org/0000-0002-1416-3412>), Unicode, Inc. [cph, dtc] (Unicode Character Database)"
 maintainer = "Kirill Müller <kirill@cynkra.com>"
+repository = "CRAN"
+
+[renv.packages.uuid]
+package = "uuid"
+version = "1.2-2"
+source = "Repository"
+title = "Tools for Generating and Handling of UUIDs"
+author = "Simon Urbanek [aut, cre, cph] (https://urbanek.org, ORCID: <https://orcid.org/0000-0003-2297-1732>), Theodore Ts'o [aut, cph] (libuuid)"
+maintainer = "Simon Urbanek <Simon.Urbanek@r-project.org>"
+"authors@r" = "c(person(\"Simon\", \"Urbanek\", role=c(\"aut\",\"cre\",\"cph\"), email=\"Simon.Urbanek@r-project.org\", comment=c(\"https://urbanek.org\", ORCID=\"0000-0003-2297-1732\")), person(\"Theodore\",\"Ts'o\", email=\"tytso@thunk.org\", role=c(\"aut\",\"cph\"), comment=\"libuuid\"))"
+depends = [
+    "R (>= 2.9.0)",
+]
+description = "Tools for generating and handling of UUIDs (Universally Unique Identifiers)."
+license = "MIT + file LICENSE"
+url = "https://www.rforge.net/uuid"
+bug_reports = "https://github.com/s-u/uuid/issues"
+needs_compilation = "yes"
 repository = "CRAN"
 
 [renv.packages.vctrs]
@@ -2385,4 +2810,9 @@ license = "GPL (>= 2)"
 repository = "CRAN"
 needs_compilation = "no"
 author = "David B. Dahl [aut], David Scott [aut, cre], Charles Roosen [aut], Arni Magnusson [aut], Jonathan Swinton [aut], Ajay Shah [ctb], Arne Henningsen [ctb], Benno Puetz [ctb], Bernhard Pfaff [ctb], Claudio Agostinelli [ctb], Claudius Loehnert [ctb], David Mitchell [ctb], David Whiting [ctb], Fernando da Rosa [ctb], Guido Gay [ctb], Guido Schulz [ctb], Ian Fellows [ctb], Jeff Laake [ctb], John Walker [ctb], Jun Yan [ctb], Liviu Andronic [ctb], Markus Loecher [ctb], Martin Gubri [ctb], Matthieu Stigler [ctb], Robert Castelo [ctb], Seth Falcon [ctb], Stefan Edwards [ctb], Sven Garbade [ctb], Uwe Ligges [ctb]"
+
+[deployment_error]
+code = "deployFailed"
+message = "Runtime error: Unable to start the app due to a runtime error. Please check the logs for more information."
+operation = "publish"
 

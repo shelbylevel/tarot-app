@@ -7,6 +7,8 @@ entrypoint = "app.R"
 title = "tarot-app"
 files = [
     "/app.R",
+    "/www",
+    "/data",
     "/.posit/publish/tarot-app-H9L5.toml",
     "/.posit/publish/deployments/deployment-VMM7.toml",
 ]
