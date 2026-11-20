@@ -137,6 +137,44 @@ tarot_css <- "
   text-align: left;
   opacity: 0.88;
 }
+
+.spread-layout {
+  display: grid;
+  gap: 6px;
+  justify-content: center;
+  align-content: center;
+  padding: 10px 0;
+}
+
+.spread-layout .mini-card-art {
+  width: 26px;
+  height: 40px;
+  border-radius: 5px;
+  font-size: 11px;
+}
+.spread-layout .mini-card-art.is-crossed { transform: rotate(90deg); }
+
+.spread-gallery-card { cursor: pointer; }
+
+.position-list {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0 0;
+  text-align: left;
+  width: 100%;
+}
+.position-list li {
+  display: flex;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 14px;
+}
+.position-list .pos-num {
+  color: var(--gold);
+  font-family: Georgia, serif;
+  min-width: 22px;
+}
 "
 
 sample_cards <- list(
@@ -162,6 +200,49 @@ sample_cards <- list(
     meaning = "A reminder that seasons shift continuously. Stay grounded at the center of change and welcome unexpected openings."
   )
 )
+
+# Spread definitions: name, description, |-separated positions, and a
+# |-separated layout of "col;row" cells (trailing "r" = rotated 90°)
+spreads <- read.csv("data/spreads.csv", stringsAsFactors = FALSE)
+
+parse_layout <- function(layout_str) {
+  cells <- strsplit(layout_str, "|", fixed = TRUE)[[1]]
+  do.call(
+    rbind,
+    lapply(cells, function(cell) {
+      rotated <- grepl("r$", cell)
+      xy <- as.integer(strsplit(sub("r$", "", cell), ";", fixed = TRUE)[[1]])
+      data.frame(col = xy[1], row = xy[2], rotated = rotated)
+    })
+  )
+}
+
+# Mini card-position diagram for a spread, reusing .mini-card-art styling
+spread_layout_ui <- function(spread, symbol = "✦") {
+  cells <- parse_layout(spread$layout)
+  div(
+    class = "spread-layout",
+    style = sprintf(
+      "grid-template-columns: repeat(%d, 26px); grid-template-rows: repeat(%d, 40px);",
+      max(cells$col),
+      max(cells$row)
+    ),
+    lapply(seq_len(nrow(cells)), function(i) {
+      div(
+        class = paste(
+          "mini-card-art",
+          if (cells$rotated[i]) "is-crossed" else ""
+        ),
+        style = sprintf(
+          "grid-column: %d; grid-row: %d;",
+          cells$col[i],
+          cells$row[i]
+        ),
+        symbol
+      )
+    })
+  )
+}
 
 ui <- f7Page(
   title = "Arcana Journal",
@@ -231,39 +312,7 @@ ui <- f7Page(
           )
         ),
 
-        f7Card(
-          div(
-            class = "spread-card-inner",
-            div(
-              h4(
-                class = "tarot-serif",
-                "Single Card"
-              ),
-              p(
-                style = "margin:2px 0 0 0; font-size:12px; opacity:0.75;",
-                "Focused daily guidance"
-              )
-            ),
-            div(class = "mini-card-art", "☾")
-          )
-        ),
-
-        f7Card(
-          div(
-            class = "spread-card-inner",
-            div(
-              h4(
-                class = "tarot-serif",
-                "Past · Present · Future"
-              ),
-              p(
-                style = "margin:2px 0 0 0; font-size:12px; opacity:0.75;",
-                "Three-card time flow spread"
-              )
-            ),
-            div(class = "mini-card-art", "✦")
-          )
-        ),
+        uiOutput("spread_gallery"),
 
         f7Card(
           div(

@@ -174,9 +174,67 @@ load_cards <- function() {
 }
 
 # ==============================================================================
+# 1b. SPREAD DEFINITIONS (data/spreads.csv)
+# ==============================================================================
+# Columns: name, description, |-separated positions, and a |-separated layout
+# of "col;row" grid cells (trailing "r" = rotated 90°, e.g. a crossing card)
+spreads <- read.csv("data/spreads.csv", stringsAsFactors = FALSE)
+
+parse_layout <- function(layout_str) {
+  cells <- str_split(layout_str, "\\|")[[1]]
+  bind_rows(lapply(cells, function(cell) {
+    rotated <- str_detect(cell, "r$")
+    xy <- as.integer(str_split(str_remove(cell, "r$"), ";")[[1]])
+    data.frame(col = xy[1], row = xy[2], rotated = rotated)
+  }))
+}
+
+# Mini card-position diagram for a spread, using .mini-card-art styling.
+# `current` highlights that position index with a gold fill; indices below
+# `current` get a softer gold outline to show they're already filled.
+# `labels` (optional, one per position) adds a hover/tap tooltip with the
+# drawn card's name.
+spread_layout_ui <- function(
+  spread,
+  symbol = "✦",
+  current = NULL,
+  labels = NULL
+) {
+  cells <- parse_layout(spread$layout)
+  div(
+    class = "spread-layout",
+    style = sprintf(
+      "grid-template-columns: repeat(%d, 26px); grid-template-rows: repeat(%d, 40px);",
+      max(cells$col),
+      max(cells$row)
+    ),
+    lapply(seq_len(nrow(cells)), function(i) {
+      has_label <- !is.null(labels) && i <= length(labels) && !is.na(labels[i])
+      div(
+        class = paste(
+          "mini-card-art",
+          if (cells$rotated[i]) "is-crossed" else "",
+          if (!is.null(current) && i == current) "is-current" else "",
+          if (!is.null(current) && i < current) "is-filled" else "",
+          if (has_label) "has-tip" else ""
+        ),
+        `data-card` = if (has_label) labels[i],
+        style = sprintf(
+          "grid-column: %d; grid-row: %d;",
+          cells$col[i],
+          cells$row[i]
+        ),
+        symbol
+      )
+    })
+  )
+}
+
+# ==============================================================================
 # 2. iOS-NATIVE UI (shinyMobile / Framework7)
 # ==============================================================================
 ui <- f7Page(
+  allowPWA = TRUE,
   title = "Tarot Journal",
   options = list(
     theme = "ios",
@@ -190,6 +248,14 @@ ui <- f7Page(
       href = "https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;600&display=swap"
     ),
     tags$link(rel = "stylesheet", href = "tarot.css"),
+    # iOS home-screen support
+    tags$link(rel = "apple-touch-icon", href = "icons/apple-touch-icon.png"),
+    tags$meta(name = "apple-mobile-web-app-capable", content = "yes"),
+    tags$meta(
+      name = "apple-mobile-web-app-status-bar-style",
+      content = "black-translucent"
+    ),
+    tags$meta(name = "apple-mobile-web-app-title", content = "Tarot"),
     tags$script(HTML(
       "function selectTarotCard(el, inputId, val) {
         var menu = el.closest('.tarot-dropdown-menu');
@@ -266,6 +332,7 @@ ui <- f7Page(
           strong = TRUE,
           inset = TRUE,
           div(class = "section-title", "2. Add Cards Drawn"),
+          uiOutput("spread_template_ui"),
           f7Text(
             "pick_pos",
             "Position",
@@ -348,7 +415,25 @@ ui <- f7Page(
         br()
       ),
 
-      # --- TAB 2: PAST READINGS LOG ---
+      # --- TAB 2: SPREAD GALLERY ---
+      f7Tab(
+        title = "Spreads",
+        tabName = "Spreads",
+        icon = f7Icon("rectangle_grid_2x2"),
+        f7Block(
+          strong = TRUE,
+          inset = TRUE,
+          div(class = "section-title", "Spread Library"),
+          p(
+            class = "muted",
+            "Tap a spread to see its positions. Edit data/spreads.csv to add your own."
+          )
+        ),
+        uiOutput("spread_gallery"),
+        br()
+      ),
+
+      # --- TAB 3: PAST READINGS LOG ---
       f7Tab(
         tabName = "History",
         icon = f7Icon("clock"),
@@ -356,7 +441,7 @@ ui <- f7Page(
         br()
       ),
 
-      # --- TAB 3: QUICK GUIDEBOOK LOOKUP ---
+      # --- TAB 4: QUICK GUIDEBOOK LOOKUP ---
       f7Tab(
         title = "Guidebook",
         tabName = "Guidebook",
@@ -417,6 +502,13 @@ ui <- f7Page(
         br()
       )
     )
+  ),
+
+  f7Sheet(
+    id = "spread_sheet",
+    swipeToClose = TRUE,
+    backdrop = TRUE,
+    uiOutput("spread_detail_ui")
   )
 )
 
@@ -517,7 +609,21 @@ server <- function(input, output, session) {
     )
 
     current_spread(append(spread, list(new_entry)))
-    updateF7Text("pick_pos", value = "", session = session) # Reset position box for next card
+
+    # Advance to the next position label when a spread template is active
+    # (current_spread() already includes the card just added)
+    positions <- active_positions()
+    next_pos <- ""
+    if (!is.null(positions)) {
+      next_idx <- length(current_spread()) + 1
+      if (next_idx <= length(positions)) {
+        next_pos <- positions[next_idx]
+      } else {
+        active_positions(NULL) # template exhausted
+        active_spread_name(NULL)
+      }
+    }
+    updateF7Text("pick_pos", value = next_pos, session = session)
     updateF7TextArea("pick_notes", value = "", session = session)
   })
 
@@ -528,11 +634,24 @@ server <- function(input, output, session) {
     if (idx >= 1 && idx <= length(spread)) {
       current_spread(spread[-idx])
     }
+
+    # Rewind the prefilled position label to the new next position
+    positions <- active_positions()
+    if (!is.null(positions)) {
+      next_idx <- length(current_spread()) + 1
+      updateF7Text(
+        "pick_pos",
+        value = if (next_idx <= length(positions)) positions[next_idx] else "",
+        session = session
+      )
+    }
   })
 
   # Clear spread
   observeEvent(input$clear_spread_btn, {
     current_spread(list())
+    active_positions(NULL)
+    active_spread_name(NULL)
     updateF7TextArea("reading_question", value = "", session = session)
     updateF7TextArea("reading_notes", value = "", session = session)
   })
@@ -572,7 +691,13 @@ server <- function(input, output, session) {
           tags$span(tags$strong(item$position), " — ", item$card),
           div(
             style = "display: flex; gap: 8px; align-items: center;",
-            tags$span(class = badge_class, item$orientation),
+            tags$span(
+              class = badge_class,
+              f7Icon(
+                if (item$orientation == "Upright") "arrow_up" else "arrow_down"
+              ),
+              item$orientation
+            ),
             tags$a(
               class = "remove-card-btn",
               style = "cursor: pointer; color: var(--f7-color-red, #ff3b30);",
@@ -742,12 +867,36 @@ server <- function(input, output, session) {
         }
       )
 
+      # Show a diagram with filled positions for every reading: the template
+      # layout when the spread type is known, otherwise a generic row of N
+      n_drawn <- nrow(reading_cards)
+      sp_match <- spreads[spreads$name == str_trim(row$spread_type), ]
+      sp_diagram <- if (nrow(sp_match) == 1) {
+        sp_match
+      } else if (n_drawn > 0) {
+        data.frame(
+          name = row$spread_type,
+          description = "",
+          positions = paste(reading_cards$position_label, collapse = "|"),
+          layout = paste(sprintf("%d;1", seq_len(n_drawn)), collapse = "|"),
+          stringsAsFactors = FALSE
+        )
+      }
+      diagram <- if (!is.null(sp_diagram)) {
+        spread_layout_ui(
+          sp_diagram,
+          current = n_drawn + 1,
+          labels = reading_cards$card
+        )
+      }
+
       f7Card(
         div(
           style = "display: flex; justify-content: space-between; align-items: baseline;",
           tags$strong(row$question),
           tags$span(class = "muted", paste(row$date, row$time))
         ),
+        diagram,
         tags$p(
           class = "muted",
           f7Icon("shippingbox"),
@@ -770,6 +919,122 @@ server <- function(input, output, session) {
         }
       )
     })
+  })
+
+  # Spread gallery: one card per spread type, tap to open detail sheet
+  output$spread_gallery <- renderUI({
+    lapply(seq_len(nrow(spreads)), function(i) {
+      sp <- spreads[i, ]
+      f7Card(
+        class = "spread-gallery-card",
+        onclick = sprintf(
+          "Shiny.setInputValue('select_spread', %d, {priority: 'event'})",
+          i
+        ),
+        div(
+          class = "spread-card-inner",
+          div(
+            h4(class = "tarot-serif", sp$name),
+            p(
+              class = "muted",
+              style = "margin:2px 0 0 0;",
+              sp$description
+            )
+          ),
+          spread_layout_ui(sp)
+        )
+      )
+    })
+  })
+
+  selected_spread <- reactiveVal(NULL)
+  observeEvent(input$select_spread, {
+    selected_spread(spreads[input$select_spread, ])
+    updateF7Sheet(id = "spread_sheet", session = session)
+  })
+
+  output$spread_detail_ui <- renderUI({
+    sp <- selected_spread()
+    req(sp)
+    positions <- str_split(sp$positions, "\\|")[[1]]
+
+    div(
+      style = "padding: 16px; text-align: center;",
+      h2(
+        class = "tarot-serif",
+        style = "margin:8px 0 0 0; font-size:28px;",
+        sp$name
+      ),
+      p(
+        class = "muted",
+        paste(length(positions), "cards ·", sp$description)
+      ),
+      spread_layout_ui(sp),
+      tags$ul(
+        class = "position-list",
+        lapply(seq_along(positions), function(i) {
+          tags$li(
+            span(class = "pos-num", i),
+            span(positions[i])
+          )
+        })
+      ),
+      br(),
+      f7Button(
+        "use_spread_btn",
+        "Use This Spread",
+        fill = TRUE,
+        rounded = TRUE
+      )
+    )
+  })
+
+  # Position labels of the spread being logged (NULL = free-form positions)
+  active_positions <- reactiveVal(NULL)
+  active_spread_name <- reactiveVal(NULL)
+
+  # Mini diagram + progress indicator while a spread template is active
+  output$spread_template_ui <- renderUI({
+    positions <- active_positions()
+    req(positions)
+    sp <- spreads[spreads$name == active_spread_name(), ]
+    next_idx <- min(length(current_spread()) + 1, length(positions))
+
+    div(
+      style = "display: flex; align-items: center; gap: 14px; margin-bottom: 10px;",
+      if (nrow(sp) == 1) {
+        spread_layout_ui(
+          sp,
+          current = if (next_idx <= length(positions)) next_idx
+        )
+      },
+      div(
+        div(class = "tarot-serif", style = "font-size: 15px;", sp$name),
+        div(
+          class = "muted",
+          sprintf("Position %d of %d", next_idx, length(positions))
+        )
+      )
+    )
+  })
+
+  # "Use This Spread": prefill New Reading tab and jump to it
+  observeEvent(input$use_spread_btn, {
+    sp <- selected_spread()
+    req(sp)
+    positions <- str_split(sp$positions, "\\|")[[1]]
+
+    active_positions(positions)
+    active_spread_name(sp$name)
+    updateF7Text("spread_type", value = sp$name, session = session)
+    updateF7Text("pick_pos", value = positions[1], session = session)
+    updateF7Sheet(id = "spread_sheet", session = session)
+    updateF7Tabs(id = "tabs", selected = "NewReading", session = session)
+    f7Toast(
+      text = paste("Spread loaded:", sp$name),
+      position = "bottom",
+      session = session
+    )
   })
 
   # Render Standalone Guidebook Lookup

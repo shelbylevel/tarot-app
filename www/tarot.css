@@ -193,9 +193,11 @@ label.label,
 }
 
 /* Orientation badges */
-.badge-upright {
-  background-color: var(--gold);
-  color: var(--bg);
+.badge-upright,
+.badge-reversed {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   padding: 3px 10px;
   border-radius: 999px;
   font-size: 11px;
@@ -203,15 +205,20 @@ label.label,
   letter-spacing: 0.5px;
 }
 
+.badge-upright .f7-icons,
+.badge-reversed .f7-icons {
+  font-size: 11px;
+}
+
+.badge-upright {
+  background-color: var(--gold);
+  color: var(--bg);
+}
+
 .badge-reversed {
   background-color: transparent;
   border: 1px solid var(--gold);
   color: var(--gold);
-  padding: 3px 10px;
-  border-radius: 999px;
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
 }
 
 /* Section headings */
@@ -249,6 +256,110 @@ label.label,
 
 .tarot-card-img.is-reversed {
   transform: rotate(180deg);
+}
+
+/* Mini card art (spread position diagrams) */
+.mini-card-art {
+  background: #141517;
+  border: 1px solid rgba(216, 178, 130, 0.55);
+  color: var(--gold-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.spread-layout {
+  display: grid;
+  gap: 6px;
+  justify-content: center;
+  align-content: center;
+  padding: 10px 0;
+}
+
+.spread-layout .mini-card-art {
+  width: 26px;
+  height: 40px;
+  border-radius: 5px;
+  font-size: 11px;
+}
+
+.spread-layout .mini-card-art.is-crossed {
+  transform: rotate(90deg);
+}
+
+.spread-layout .mini-card-art.is-current {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: var(--bg);
+}
+
+.spread-layout .mini-card-art.is-filled {
+  border-color: var(--gold);
+  color: var(--gold);
+  opacity: 0.55;
+}
+
+/* Card-name tooltip on filled positions (hover on desktop, tap on mobile) */
+.spread-layout .mini-card-art.has-tip {
+  position: relative;
+  cursor: pointer;
+}
+
+.spread-layout .mini-card-art.has-tip::after {
+  content: attr(data-card);
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--gold-soft);
+  font-size: 11px;
+  white-space: nowrap;
+  padding: 4px 8px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+  z-index: 10;
+}
+
+.spread-layout .mini-card-art.has-tip:hover::after,
+.spread-layout .mini-card-art.has-tip:active::after {
+  opacity: 1;
+}
+
+.spread-gallery-card {
+  cursor: pointer;
+}
+
+.spread-card-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.position-list {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0 0;
+  text-align: left;
+  width: 100%;
+}
+
+.position-list li {
+  display: flex;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 14px;
+}
+
+.position-list .pos-num {
+  color: var(--gold);
+  font-family: Georgia, serif;
+  min-width: 22px;
 }
 
 /* Primary buttons */
